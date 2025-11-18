@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Songwunsch – DJ Dashboard</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background:#020617; color:#e5e7eb; }
+    .container { max-width: 960px; margin: 0 auto; padding: 16px; }
+    .card { border-radius:16px; padding:16px; background:#020617; border:1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,.8); }
+    h1,h2 { margin-top:0; }
+    .list { display:flex; flex-direction:column; gap:8px; max-height: 80vh; overflow:auto; }
+    .row { display:flex; flex-direction:column; gap:4px; border-radius:12px; padding:10px; background:#0b1120; border:1px solid #1f2937; }
+    .muted { color:#9ca3af; font-size: .9em; }
+    .badge { font-size:.8em; border-radius:999px; padding:4px 10px; border:1px solid #4b5563; background:#111827; color:#e5e7eb; cursor:pointer; }
+    .badge:hover { background:#e5e7eb; color:#020617; }
+    select { background:#020617; color:#e5e7eb; border-radius:8px; border:1px solid #4b5563; padding:6px 8px; }
+    .topbar { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    .small { font-size:.8em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <h1>🎛️ DJ-Dashboard</h1>
+          <p class="muted small">Es werden nur Wünsche mit Status <strong>neu</strong> angezeigt.</p>
+          <p class="muted small">Event: <span id="eventLabel"></span></p>
+        </div>
+        <div>
+          <label class="muted small">Sortierung:
+            <select id="sortOrder">
+              <option value="asc">Älteste zuerst</option>
+              <option value="desc">Neueste zuerst</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div id="list" class="list"></div>
+    </div>
+  </div>
+
+<script>
+  // 👉 HIER GENAU DIESELBE KONFIG WIE IN index.html EINTRAGEN
+  const SUPABASE_URL = 'https://nnbjwlbjqjjyrbrvbuva.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYmp3bGJqcWpqeXJicnZidXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MjczMDksImV4cCI6MjA3ODAwMzMwOX0.kRpglJlnYQHV1dXJPorb8d4GGysYCLbW-6s-mDdWMOo';
+  const EVENT_CODE = 'Kirmes-2026';
+
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Event-Code per URL-Parameter unterstützen (?e=...)
+  const url = new URL(window.location);
+  if (!url.searchParams.get('e')) {
+    url.searchParams.set('e', EVENT_CODE);
+    history.replaceState({}, '', url.toString());
+  }
+  const currentEventCode = url.searchParams.get('e');
+  document.getElementById('eventLabel').textContent = currentEventCode;
+
+  const sortSelect = document.getElementById('sortOrder');
+
+  async function loadDj(){
+    const ascending = sortSelect.value === 'asc';
+
+    const { data, error } = await client
+      .from('song_requests')
+      .select('*')
+      .eq('event_code', currentEventCode)
+      .eq('status', 'neu') // nur neue Wünsche
+      .order('created_at', { ascending });
+
+    if (error) {
+      console.error('Fehler beim Laden der DJ-Liste:', error);
+      return;
+    }
+
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+
+    (data || []).forEach(row => {
+      const item = renderRow(row);
+      list.appendChild(item);
+    });
+  }
+
+  function renderRow(row){
+    const div = document.createElement('div');
+    div.className = 'row';
+
+    const title = [row.artist, row.track_title].filter(Boolean).join(' — ') || row.track_url || 'Wunsch';
+    const metaParts = [];
+    if (row.table_label) metaParts.push(row.table_label);
+    if (row.requester_name) metaParts.push(row.requester_name);
+    const metaLine = metaParts.join(' • ');
+
+    div.innerHTML = `
+      <div><strong>${title}</strong></div>
+      <div class="muted small">${metaLine}</div>
+    `;
+
+    const btnWrap = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.className = 'badge';
+    btn.textContent = 'Als gespielt markieren';
+    btn.onclick = async () => {
+      const { error: upErr } = await client
+        .from('song_requests')
+        .update({ status: 'gespielt' })
+        .eq('id', row.id);
+      if (upErr) {
+        alert('Fehler beim Aktualisieren: ' + upErr.message);
+        return;
+      }
+      await loadDj(); // nach Statuswechsel neu laden
+    };
+    btnWrap.appendChild(btn);
+    div.appendChild(btnWrap);
+
+    return div;
+  }
+
+  sortSelect.onchange = loadDj;
+
+  // 🔁 Realtime-Updates: bei neuen/aktualisierten Wünschen neu laden
+  client.channel('rq-dj')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'song_requests' },
+      payload => {
+        // neuer Wunsch -> nur laden, wenn Event-Code passt
+        if (payload.new.event_code === currentEventCode) {
+          loadDj();
+        }
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'song_requests' },
+      payload => {
+        if (payload.new.event_code === currentEventCode) {
+          loadDj();
+        }
+      }
+    )
+    .subscribe();
+
+  // ⏱️ Sicherheit: alle 5 Sekunden neu laden, falls Realtime blockiert (WLAN/Firewall)
+  setInterval(loadDj, 5000);
+
+  // Beim Start einmal laden
+  loadDj();
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Songwunsch – Krimes Marmagen</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background:#f3f4f6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 16px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 16px; }
+    .card { border:1px solid #e5e7eb; border-radius:16px; padding:16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); background:#fff; }
+    .grid { display:grid; gap:16px; }
+    @media (min-width: 800px){ .grid-2 { grid-template-columns: 1fr 1fr; } }
+    input, button { font: inherit; padding:12px; border-radius:10px; border:1px solid #d1d5db; width:100%; box-sizing:border-box; }
+    button { cursor:pointer; background:#111827; color:#fff; border-color:#111827; }
+    button:hover { opacity: .9; }
+    .list { display:flex; flex-direction:column; gap:8px; max-height: 60vh; overflow:auto; }
+    .row { display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid #eee; border-radius:12px; padding:10px; background:#f9fafb; }
+    .muted { color:#6b7280; font-size: 0.9em; }
+    .small { font-size: .95em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>🎵 Songwunsch - Kirmes Marmagen</h1>
+        <p class="muted small">Scanne den QR-Code oder nutze diese Seite, um Musikwünsche zu senden.</p>
+      </div>
+      <div id="qr"></div>
+    </header>
+
+    <div id="guest" class="grid grid-2">
+      <div class="card">
+        <h2>Wunsch eingeben</h2>
+        <p class="muted">Suche im Apple-Katalog oder füge einen Spotify/Apple-Link ein.</p>
+        <div class="grid">
+          <input id="name" placeholder="Dein Name (optional)" />
+          <input id="table" placeholder="Grund (optional)" />
+          <input id="query" placeholder="Titel oder Künstler suchen (Apple)" />
+          <button id="search">Suchen</button>
+          <input id="link" placeholder="…oder Link aus Spotify/Apple einfügen (optional)" />
+        </div>
+        <div id="results" class="list" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h2>Letzte Wünsche</h2>
+        <div id="latest" class="list"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // 👉 HIER DEINE EIGENEN WERTE EINTRAGEN
+  const SUPABASE_URL = 'https://nnbjwlbjqjjyrbrvbuva.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYmp3bGJqcWpqeXJicnZidXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MjczMDksImV4cCI6MjA3ODAwMzMwOX0.kRpglJlnYQHV1dXJPorb8d4GGysYCLbW-6s-mDdWMOo';
+  const EVENT_CODE = 'Kirmes-2026';
+
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Event-Code per URL-Parameter unterstützen (?e=...)
+  const url = new URL(window.location);
+  if (!url.searchParams.get('e')) {
+    url.searchParams.set('e', EVENT_CODE);
+    history.replaceState({}, '', url.toString());
+  }
+
+  // QR-Code erzeugen (für Gäste)
+  new QRCode(document.getElementById('qr'), { text: url.toString(), width: 92, height: 92 });
+
+  // Apple iTunes Suche
+  const searchBtn = document.getElementById('search');
+  const results = document.getElementById('results');
+
+  searchBtn.onclick = async () => {
+    const q = document.getElementById('query').value.trim();
+    results.innerHTML = '';
+    if (!q) {
+      alert('Bitte gib erst einen Suchbegriff ein.');
+      return;
+    }
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=10&country=DE`);
+      const data = await res.json();
+      if (!data.results || data.results.length === 0) {
+        results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
+        return;
+      }
+      data.results.forEach(r => addResult(r));
+    } catch (err) {
+      console.error(err);
+      results.innerHTML = '<p class="muted">Fehler bei der Suche (siehe Konsole).</p>';
+    }
+  };
+
+  function addResult(r){
+    const div = document.createElement('div');
+    div.className = 'row';
+    const title = `${r.trackName || r.collectionName} — ${r.artistName}`;
+    div.innerHTML = `<div><div><strong>${title}</strong></div></div>`;
+    const btn = document.createElement('button');
+    btn.textContent = 'Wünschen';
+    btn.onclick = () => submitRequest({
+      platform: 'apple',
+      track_title: r.trackName || r.collectionName,
+      artist: r.artistName,
+      track_id: String(r.trackId),
+      track_url: r.trackViewUrl
+    });
+    div.appendChild(btn);
+    results.appendChild(div);
+  }
+
+  // Wunsch absenden
+  async function submitRequest(base){
+    const name = document.getElementById('name').value.trim();
+    const table = document.getElementById('table').value.trim();
+    const link = document.getElementById('link').value.trim();
+
+    let payload = {
+      event_code: url.searchParams.get('e'),
+      requester_name: name || null,
+      table_label: table || null,
+      status: 'neu',
+      ...base
+    };
+
+    if (!base || base.platform === undefined){
+      // Nur Link genutzt
+      payload = { 
+        event_code: url.searchParams.get('e'),
+        requester_name: name || null,
+        table_label: table || null,
+        platform: 'link',
+        track_title: 'Link-Wunsch',
+        artist: null,
+        track_id: null,
+        track_url: link || null,
+        status: 'neu'
+      };
+    } else if (link){
+      payload.track_url = link; // zusätzlich
+    }
+
+    const { error } = await client.from('song_requests').insert(payload);
+    if (error){
+      alert('Fehler beim Senden: ' + error.message);
+      return;
+    }
+
+    // Eingabefelder zurücksetzen
+    document.getElementById('query').value='';
+    document.getElementById('link').value='';
+
+    // 👉 WICHTIG: Liste "Letzte Wünsche" direkt neu laden
+    await loadLatest();
+  }
+
+  // Letzte Wünsche – nur Status "neu" anzeigen
+  async function loadLatest(){
+    const eventCode = url.searchParams.get('e');
+
+    const { data, error } = await client
+      .from('song_requests')
+      .select('*')
+      .eq('event_code', eventCode)
+      .eq('status', 'neu')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error('Fehler beim Laden der letzten Wünsche:', error);
+      return;
+    }
+
+    const latest = document.getElementById('latest');
+    latest.innerHTML = '';
+    (data || []).forEach(row => latest.appendChild(renderRow(row)));
+  }
+
+  function renderRow(row){
+    const div = document.createElement('div');
+    div.className = 'row';
+
+    const meta = [row.artist, row.track_title].filter(Boolean).join(' — ') || row.track_url || 'Wunsch';
+    const infoParts = [];
+    if (row.table_label) infoParts.push('Tisch ' + row.table_label);
+    if (row.requester_name) infoParts.push(row.requester_name);
+    const info = infoParts.join(' • ');
+
+    div.innerHTML = `
+      <div>
+        <div><strong>${meta}</strong></div>
+        <div class="muted small">${info}</div>
+      </div>
+    `;
+
+    return div;
+  }
+
+  const currentEventCode = url.searchParams.get('e');
+
+  // ▶ Realtime-Updates: auf INSERT & UPDATE reagieren
+  client.channel('rq-guests')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'song_requests' },
+      payload => {
+        if (payload.new.event_code === currentEventCode) {
+          loadLatest();
+        }
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'song_requests' },
+      payload => {
+        if (payload.new.event_code === currentEventCode) {
+          loadLatest();
+        }
+      }
+    )
+    .subscribe();
+
+  // ⏱️ Fallback: alle 5 Sekunden neu laden
+  setInterval(loadLatest, 5000);
+
+  // Beim Laden der Seite direkt einmal holen
+  loadLatest();
+
+</script>
+</body>
+</html>
