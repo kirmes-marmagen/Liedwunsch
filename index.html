@@ -228,12 +228,19 @@
       return;
     }
 
-    // Eingabefelder zurücksetzen
-    document.getElementById('query').value = '';
-    document.getElementById('link').value = '';
+// Eingabefelder zurücksetzen
+document.getElementById('query').value = '';
+document.getElementById('link').value = '';
 
-    // Liste "Letzte Wünsche" direkt neu laden
-    await loadLatest();
+results.innerHTML = '';
+searchError.textContent = '';
+
+// Button für manuellen Wunsch entfernen, falls vorhanden
+const manualBtn = document.getElementById('manualWishButton');
+if (manualBtn) manualBtn.remove();
+
+// Liste "Letzte Wünsche" direkt neu laden
+await loadLatest();
   }
 
   // Letzte Wünsche – nur Status "neu" anzeigen
@@ -310,5 +317,6 @@
 </script>
 </body>
 </html>
+
 
 
