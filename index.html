@@ -64,34 +64,22 @@
 
     .brand {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
+    /* NEU: komplettes Logo */
+    .brand-logo-full {
+      height: 42px;
+      width: auto;
       object-fit: contain;
-      background: radial-gradient(circle at 30% 20%, #22c55e 0, #16a34a 35%, #166534 80%);
-      padding: 4px;
-      border: 1px solid rgba(34, 197, 94, 0.6);
-      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.55);
+      display: block;
     }
 
-    .brand-text h1 {
-      margin: 0;
-      font-size: 1.1rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .brand-text p {
-      margin: 0;
-      font-size: 0.82rem;
+    .brand-subline {
+      font-size: 0.8rem;
       color: var(--text-soft);
     }
-
 
     main {
       display: flex;
@@ -378,6 +366,10 @@
         flex-direction: column;
         align-items: flex-start;
       }
+
+      .brand-logo-full {
+        height: 36px;
+      }
     }
   </style>
 </head>
@@ -385,16 +377,9 @@
   <div class="page">
     <header>
       <div class="brand">
-        <!-- Dein Logo -->
-        <img src="logo.png" alt="Kirmes Marmagen Logo" class="brand-logo">
-        <div class="brand-text">
-          <h1>Songwunsch auf der Kirmes in Marmagen 2026</h1>
-          <p>Wünsche direkt an den DJ</p>
-        </div>
-      </div>
-      <div class="live-pill">
-        <span class="live-dot"></span>
-        <span>DJ ist live</span>
+        <!-- komplettes Logo in der ersten Zeile -->
+        <img src="Kirmesverein.png" alt="Kirmesverein Marmagen Logo" class="brand-logo-full">
+        <div class="brand-subline">Songwünsche für die Kirmesparty in Marmagen</div>
       </div>
     </header>
 
@@ -732,4 +717,3 @@
 </script>
 </body>
 </html>
-
