@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Songwunsch – Krimes Marmagen</title>
+  <title>Songwunsch – Kirmes Marmagen</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -61,7 +61,7 @@
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // Event-Code per URL-Parameter unterstützen (?e=...)
-  const url = new URL(window.location);
+  const url = new URL(window.location.href);
   if (!url.searchParams.get('e')) {
     url.searchParams.set('e', EVENT_CODE);
     history.replaceState({}, '', url.toString());
@@ -70,32 +70,56 @@
   // QR-Code erzeugen (für Gäste)
   new QRCode(document.getElementById('qr'), { text: url.toString(), width: 92, height: 92 });
 
-  // Apple iTunes Suche
+  // Apple iTunes Suche (robust für Mobil + Desktop)
+  const searchInput = document.getElementById('query');
   const searchBtn = document.getElementById('search');
   const results = document.getElementById('results');
 
-  searchBtn.onclick = async () => {
-    const q = document.getElementById('query').value.trim();
+  async function searchSongs(e) {
+    if (e) e.preventDefault();
+
+    const q = searchInput.value.trim();
     results.innerHTML = '';
+
     if (!q) {
       alert('Bitte gib erst einen Suchbegriff ein.');
       return;
     }
+
     try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=100&country=DE`);
-      const data = await res.json();
+      const searchUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&media=music&limit=25&country=DE`;
+      const response = await fetch(searchUrl);
+
+      if (!response.ok) {
+        throw new Error('HTTP-Fehler ' + response.status);
+      }
+
+      const data = await response.json();
+      console.log('Search data:', data); // hilfreich fürs Debuggen auf dem Handy
+
       if (!data.results || data.results.length === 0) {
         results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
         return;
       }
+
       data.results.forEach(r => addResult(r));
     } catch (err) {
-      console.error(err);
-      alert('Fehler bei der Suche: ' + (err && err.message ? err.message : err));
+      console.error('Fehler bei der Suche:', err);
+      alert('Fehler bei der Suche: ' + (err && err.message ? err.message : 'Unbekannter Fehler'));
     }
-  };
+  }
 
-  function addResult(r){
+  // Klick auf "Suchen"
+  searchBtn.addEventListener('click', searchSongs);
+
+  // Enter-Taste im Suchfeld
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      searchSongs(e);
+    }
+  });
+
+  function addResult(r) {
     const div = document.createElement('div');
     div.className = 'row';
     const title = `${r.trackName || r.collectionName} — ${r.artistName}`;
@@ -114,7 +138,7 @@
   }
 
   // Wunsch absenden
-  async function submitRequest(base){
+  async function submitRequest(base) {
     const name = document.getElementById('name').value.trim();
     const table = document.getElementById('table').value.trim();
     const link = document.getElementById('link').value.trim();
@@ -127,7 +151,7 @@
       ...base
     };
 
-    if (!base || base.platform === undefined){
+    if (!base || base.platform === undefined) {
       // Nur Link genutzt
       payload = { 
         event_code: url.searchParams.get('e'),
@@ -140,26 +164,26 @@
         track_url: link || null,
         status: 'neu'
       };
-    } else if (link){
+    } else if (link) {
       payload.track_url = link; // zusätzlich
     }
 
     const { error } = await client.from('song_requests').insert(payload);
-    if (error){
+    if (error) {
       alert('Fehler beim Senden: ' + error.message);
       return;
     }
 
     // Eingabefelder zurücksetzen
-    document.getElementById('query').value='';
-    document.getElementById('link').value='';
+    document.getElementById('query').value = '';
+    document.getElementById('link').value = '';
 
     // 👉 WICHTIG: Liste "Letzte Wünsche" direkt neu laden
     await loadLatest();
   }
 
   // Letzte Wünsche – nur Status "neu" anzeigen
-  async function loadLatest(){
+  async function loadLatest() {
     const eventCode = url.searchParams.get('e');
 
     const { data, error } = await client
@@ -180,7 +204,7 @@
     (data || []).forEach(row => latest.appendChild(renderRow(row)));
   }
 
-  function renderRow(row){
+  function renderRow(row) {
     const div = document.createElement('div');
     div.className = 'row';
 
@@ -229,9 +253,6 @@
 
   // Beim Laden der Seite direkt einmal holen
   loadLatest();
-
 </script>
 </body>
 </html>
-
-
