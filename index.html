@@ -6,52 +6,484 @@
   <title>Songwunsch – Kirmes Marmagen</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background:#f3f4f6; }
-    .container { max-width: 960px; margin: 0 auto; padding: 16px; }
-    header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 16px; }
-    .card { border:1px solid #e5e7eb; border-radius:16px; padding:16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); background:#fff; }
-    .grid { display:grid; gap:16px; }
-    @media (min-width: 800px){ .grid-2 { grid-template-columns: 1fr 1fr; } }
-    input, button { font: inherit; padding:12px; border-radius:10px; border:1px solid #d1d5db; width:100%; box-sizing:border-box; }
-    button { cursor:pointer; background:#111827; color:#fff; border-color:#111827; }
-    button:hover { opacity: .9; }
-    .list { display:flex; flex-direction:column; gap:8px; max-height: 60vh; overflow:auto; }
-    .row { display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid #eee; border-radius:12px; padding:10px; background:#f9fafb; }
-    .muted { color:#6b7280; font-size: 0.9em; }
-    .small { font-size: .95em; }
-    .error { color:#b91c1c; font-size:0.9em; margin-top:6px; }
+    :root {
+      --bg-dark: #020617;
+      --bg-card: rgba(15, 23, 42, 0.94);
+      --bg-soft: rgba(15, 23, 42, 0.88);
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.15);
+      --accent-strong: #16a34a;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.6);
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(34, 197, 94, 0.25) 0, transparent 55%),
+        radial-gradient(circle at bottom, rgba(37, 99, 235, 0.18) 0, transparent 55%),
+        var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 16px 32px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.9));
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 10px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      object-fit: contain;
+      background: radial-gradient(circle at 30% 20%, #22c55e 0, #16a34a 35%, #166534 80%);
+      padding: 4px;
+      border: 1px solid rgba(34, 197, 94, 0.6);
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.55);
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .brand-text p {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--text-soft);
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @media (min-width: 900px) {
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr);
+        align-items: flex-start;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 20px;
+      backdrop-filter: blur(18px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      margin: 0;
+    }
+
+    .card-subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-soft);
+    }
+
+    .chip {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-soft);
+      background: rgba(15, 23, 42, 0.85);
+      white-space: nowrap;
+    }
+
+    .step-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+
+    .field-group {
+      margin-bottom: 10px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    input, button, textarea {
+      font: inherit;
+      box-sizing: border-box;
+    }
+
+    input[type="text"],
+    input[type="search"],
+    textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.92);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    }
+
+    textarea {
+      border-radius: 14px;
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(148, 163, 184, 0.8);
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.7);
+      background: rgba(15, 23, 42, 0.98);
+      transform: translateY(-1px);
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #022c22;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 18px 35px rgba(34, 197, 94, 0.45);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+      white-space: nowrap;
+      width: auto;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 40px rgba(34, 197, 94, 0.55);
+      filter: brightness(1.02);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 12px 20px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-secondary {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-soft);
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+      width: auto;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(148, 163, 184, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.6);
+    }
+
+    .muted {
+      color: var(--text-soft);
+      font-size: 0.9em;
+    }
+
+    .small {
+      font-size: 0.9em;
+    }
+
+    .hint-text {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .status-message {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      min-height: 18px;
+    }
+
+    .status-message.error,
+    .error {
+      color: #fecaca;
+      font-size: 0.9em;
+      margin-top: 6px;
+    }
+
+    .status-message.success {
+      color: #bbf7d0;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 60vh;
+      overflow: auto;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      font-size: 0.9rem;
+      transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .row:hover {
+      transform: translateY(-1px);
+      background: rgba(15, 23, 42, 0.98);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
+    }
+
+    .row button {
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.65);
+      color: var(--accent);
+      width: auto;
+      white-space: nowrap;
+    }
+
+    .row button:hover {
+      background: rgba(34, 197, 94, 0.18);
+    }
+
+    /* QR-Karte rechts */
+    .qr-card {
+      margin-top: 12px;
+      border-radius: var(--radius-lg);
+      padding: 10px 10px 12px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(22, 163, 74, 0.18));
+      border: 1px dashed rgba(34, 197, 94, 0.7);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #qr {
+      padding: 4px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .qr-text-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .qr-text-sub {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      opacity: 0.9;
+    }
+
+    footer span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        border-radius: 18px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="page">
     <header>
-      <div>
-        <h1>🎵 Songwunsch - Kirmes Marmagen 🎵</h1>
-        <p class="muted small">Nutze diese Seite, um Musikwünsche zu senden.</p>
+      <div class="brand">
+        <!-- Dein Logo -->
+        <img src="logo.png" alt="Kirmes Marmagen Logo" class="brand-logo">
+        <div class="brand-text">
+          <h1>Songwunsch</h1>
+          <p>Kirmes Marmagen · Wünsche direkt an den DJ</p>
+        </div>
       </div>
-      <div id="qr"></div>
+      <div class="live-pill">
+        <span class="live-dot"></span>
+        <span>DJ ist live</span>
+      </div>
     </header>
 
-    <div id="guest" class="grid grid-2">
-      <div class="card">
-        <h2>Wunsch eingeben</h2>
-        <p class="muted">Suche deinen gewünschten Song über den Titel oder Interpret</p>
-        <div class="grid">
-          <input id="name" placeholder="Dein Name (optional)" />
-          <input id="table" placeholder="Grund (optional)" />
-          <input id="query" placeholder="Titel oder Künstler suchen (Apple)" />
-          <button id="search">Suchen</button>
-          <input id="link" placeholder="…oder Link aus Spotify/Apple einfügen (optional)" />
+    <main id="guest">
+      <!-- Linke Seite: Wunsch / Suche -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Dein Musikwunsch</h2>
+            <p class="card-subtitle">Suche einen Titel oder schreib ihn einfach auf.</p>
+          </div>
+          <div class="chip">Party · Wunschbox</div>
         </div>
-        <div id="results" class="list" style="margin-top:12px"></div>
-        <div id="searchError" class="error"></div>
-      </div>
-      <div class="card">
-        <h2>Letzte Wünsche</h2>
+
+        <div class="field-group">
+          <div class="step-label">1 · Deine Angaben</div>
+          <input id="name" type="text" placeholder="Dein Name oder Gruppe (optional)" />
+          <div style="margin-top:6px;"></div>
+          <input id="table" type="text" placeholder="Grund / Für wen ist der Song? (optional)" />
+        </div>
+
+        <div class="field-group">
+          <div class="step-label">2 · Lied suchen</div>
+          <p class="muted small">Suche deinen gewünschten Song über Titel oder Interpret im Apple-Katalog.</p>
+          <div class="input-row">
+            <input id="query" type="search" placeholder="Titel oder Künstler suchen (Apple)" />
+            <button id="search" class="btn-primary">Suchen</button>
+          </div>
+          <p class="hint-text">
+            Tipp: Du kannst zusätzlich einen Link aus Spotify/Apple Music einfügen, damit der DJ die genaue Version sieht.
+          </p>
+          <input id="link" type="text" placeholder="…oder Link aus Spotify/Apple einfügen (optional)" style="margin-top:6px;" />
+        </div>
+
+        <div class="field-group">
+          <div id="results" class="list" style="margin-top:12px"></div>
+          <div id="searchError" class="error"></div>
+        </div>
+      </section>
+
+      <!-- Rechte Seite: Letzte Wünsche & QR -->
+      <aside class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Letzte Wünsche</h2>
+            <p class="card-subtitle">Damit du siehst, was schon angefragt wurde.</p>
+          </div>
+          <div class="chip">Live-Übersicht</div>
+        </div>
+
         <div id="latest" class="list"></div>
-      </div>
-    </div>
+
+        <div class="qr-card">
+          <div id="qr"></div>
+          <div>
+            <div class="qr-text-title">Per Handy wünschen</div>
+            <div class="qr-text-sub">
+              Kamera auf den QR-Code halten oder die Adresse dieser Seite teilen – so kann jeder am Tisch schnell seinen Wunsch abgeben.
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      Wünsche werden direkt an den <span>DJ auf der Kirmes Marmagen</span> gesendet – es besteht kein Anspruch,
+      dass jeder Wunsch gespielt wird.
+    </footer>
   </div>
 
 <script>
@@ -60,7 +492,7 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYmp3bGJqcWpqeXJicnZidXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MjczMDksImV4cCI6MjA3ODAwMzMwOX0.kRpglJlnYQHV1dXJPorb8d4GGysYCLbW-6s-mDdWMOo';
   const EVENT_CODE = 'Kirmes-2026';
 
-  // URL deiner Edge Function (Dashboard-URL)
+  // URL deiner Edge Function (Apple-Suche)
   const ITUNES_PROXY_URL = 'https://nnbjwlbjqjjyrbrvbuva.supabase.co/functions/v1/itunes-proxy';
 
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -73,7 +505,11 @@
   }
 
   // QR-Code erzeugen (für Gäste)
-  new QRCode(document.getElementById('qr'), { text: url.toString(), width: 92, height: 92 });
+  new QRCode(document.getElementById('qr'), {
+    text: url.toString(),
+    width: 90,
+    height: 90
+  });
 
   const searchInput = document.getElementById('query');
   const searchBtn = document.getElementById('search');
@@ -88,6 +524,7 @@
     const btn = document.createElement('button');
     btn.id = 'manualWishButton';
     btn.textContent = 'Ohne Treffer trotzdem wünschen';
+    btn.className = 'btn-secondary';
     btn.style.marginTop = '8px';
 
     btn.onclick = () => {
@@ -111,57 +548,56 @@
 
   // Suche über deine Supabase Edge Function
   async function searchSongs(e) {
-  if (e) e.preventDefault();
+    if (e) e.preventDefault();
 
-  const q = searchInput.value.trim();
-  results.innerHTML = '';
-  searchError.textContent = '';
+    const q = searchInput.value.trim();
+    results.innerHTML = '';
+    searchError.textContent = '';
 
-  if (!q) {
-    alert('Bitte gib erst einen Suchbegriff ein.');
-    return;
-  }
+    if (!q) {
+      alert('Bitte gib erst einen Suchbegriff ein.');
+      return;
+    }
 
-  try {
-    const proxyUrl = new URL(ITUNES_PROXY_URL);
-    proxyUrl.searchParams.set('term', q);
-    proxyUrl.searchParams.set('country', 'DE');
-    proxyUrl.searchParams.set('limit', '25');
+    try {
+      const proxyUrl = new URL(ITUNES_PROXY_URL);
+      proxyUrl.searchParams.set('term', q);
+      proxyUrl.searchParams.set('country', 'DE');
+      proxyUrl.searchParams.set('limit', '25');
 
-    const response = await fetch(proxyUrl.toString(), {
-      method: 'GET',
-      headers: {
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-        "apikey": SUPABASE_ANON_KEY
+      const response = await fetch(proxyUrl.toString(), {
+        method: 'GET',
+        headers: {
+          "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+          "apikey": SUPABASE_ANON_KEY
+        }
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Proxy-Fehler:', response.status, text);
+        searchError.textContent = 'Apple-Suche ist aktuell nicht verfügbar. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
+        ensureManualWishButton();
+        return;
       }
-    });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error('Proxy-Fehler:', response.status, text);
-      searchError.textContent = 'Apple-Suche ist aktuell nicht verfügbar. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
+      const data = await response.json();
+      console.log('Proxy-Daten:', data);
+
+      if (!data.results || data.results.length === 0) {
+        results.innerHTML = '<p class="muted small">Keine Ergebnisse gefunden.</p>';
+        ensureManualWishButton();
+        return;
+      }
+
+      data.results.forEach(r => addResult(r));
       ensureManualWishButton();
-      return;
-    }
-
-    const data = await response.json();
-    console.log('Proxy-Daten:', data);
-
-    if (!data.results || data.results.length === 0) {
-      results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
+    } catch (err) {
+      console.error('Fehler bei der Suche:', err);
+      searchError.textContent = 'Fehler bei der Suche. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
       ensureManualWishButton();
-      return;
     }
-
-    data.results.forEach(r => addResult(r));
-    ensureManualWishButton();
-  } catch (err) {
-    console.error('Fehler bei der Suche:', err);
-    searchError.textContent = 'Fehler bei der Suche. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
-    ensureManualWishButton();
   }
-}
-
 
   // Klick auf "Suchen"
   searchBtn.addEventListener('click', searchSongs);
@@ -207,7 +643,7 @@
 
     if (!base || base.platform === undefined) {
       // Nur Link genutzt
-      payload = { 
+      payload = {
         event_code: url.searchParams.get('e'),
         requester_name: name || null,
         table_label: table || null,
@@ -228,19 +664,19 @@
       return;
     }
 
-// Eingabefelder zurücksetzen
-document.getElementById('query').value = '';
-document.getElementById('link').value = '';
+    // Eingabefelder zurücksetzen
+    document.getElementById('query').value = '';
+    document.getElementById('link').value = '';
 
-results.innerHTML = '';
-searchError.textContent = '';
+    results.innerHTML = '';
+    searchError.textContent = '';
 
-// Button für manuellen Wunsch entfernen, falls vorhanden
-const manualBtn = document.getElementById('manualWishButton');
-if (manualBtn) manualBtn.remove();
+    // Button für manuellen Wunsch entfernen, falls vorhanden
+    const manualBtn = document.getElementById('manualWishButton');
+    if (manualBtn) manualBtn.remove();
 
-// Liste "Letzte Wünsche" direkt neu laden
-await loadLatest();
+    // Liste "Letzte Wünsche" direkt neu laden
+    await loadLatest();
   }
 
   // Letzte Wünsche – nur Status "neu" anzeigen
@@ -271,7 +707,7 @@ await loadLatest();
 
     const meta = [row.artist, row.track_title].filter(Boolean).join(' — ') || row.track_url || 'Wunsch';
     const infoParts = [];
-    if (row.table_label) infoParts.push('Tisch ' + row.table_label);
+    if (row.table_label) infoParts.push(row.table_label);
     if (row.requester_name) infoParts.push(row.requester_name);
     const info = infoParts.join(' • ');
 
@@ -317,7 +753,3 @@ await loadLatest();
 </script>
 </body>
 </html>
-
-
-
-
