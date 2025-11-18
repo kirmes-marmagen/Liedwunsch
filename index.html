@@ -39,6 +39,21 @@
       min-height: 100vh;
     }
 
+    /* Vollbreiter Logo-Balken oben */
+    .full-logo-bar {
+      width: 100%;
+      text-align: center;
+      padding: 20px 0 10px;
+      background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(15,23,42,0.80));
+      border-bottom: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .full-logo-bar img {
+      max-width: 420px;
+      width: 80%;
+      height: auto;
+    }
+
     .page {
       max-width: 1100px;
       margin: 0 auto;
@@ -51,6 +66,7 @@
       justify-content: space-between;
       gap: 16px;
       padding: 14px 18px;
+      margin-top: 10px;
       margin-bottom: 18px;
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.9));
       border-radius: 999px;
@@ -65,20 +81,42 @@
     .brand {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
     }
 
-    /* NEU: komplettes Logo */
-    .brand-logo-full {
-      height: 42px;
-      width: auto;
-      object-fit: contain;
-      display: block;
+    .brand h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
-    .brand-subline {
-      font-size: 0.8rem;
+    .brand p {
+      margin: 0;
+      font-size: 0.82rem;
       color: var(--text-soft);
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
     }
 
     main {
@@ -367,19 +405,28 @@
         align-items: flex-start;
       }
 
-      .brand-logo-full {
-        height: 36px;
+      .full-logo-bar img {
+        width: 90%;
+        max-width: 360px;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Vollbreites Vereinslogo -->
+  <div class="full-logo-bar">
+    <img src="Kirmesverein.png" alt="Kirmesverein Marmagen Logo">
+  </div>
+
   <div class="page">
     <header>
       <div class="brand">
-        <!-- komplettes Logo in der ersten Zeile -->
-        <img src="Kirmesverein.png" alt="Kirmesverein Marmagen Logo" class="brand-logo-full">
-        <div class="brand-subline">Songwünsche für die Kirmesparty in Marmagen</div>
+        <h1>Songwunsch</h1>
+        <p>Kirmes Marmagen · Wünsche direkt an den DJ</p>
+      </div>
+      <div class="live-pill">
+        <span class="live-dot"></span>
+        <span>DJ ist live</span>
       </div>
     </header>
 
