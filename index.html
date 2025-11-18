@@ -82,7 +82,7 @@
       return;
     }
     try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=10&country=DE`);
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=100&country=DE`);
       const data = await res.json();
       if (!data.results || data.results.length === 0) {
         results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
@@ -233,4 +233,5 @@
 </script>
 </body>
 </html>
+
 
