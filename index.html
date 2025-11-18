@@ -458,7 +458,6 @@
           <p class="hint-text">
             Tipp: Du kannst zusätzlich einen Link aus Spotify/Apple Music einfügen, damit der DJ die genaue Version sieht.
           </p>
-          <input id="link" type="text" placeholder="…oder Link aus Spotify/Apple einfügen (optional)" style="margin-top:6px;" />
         </div>
 
         <div class="field-group">
@@ -527,35 +526,6 @@
   const results = document.getElementById('results');
   const searchError = document.getElementById('searchError');
 
-  // Fallback-Button für "trotzdem wünschen"
-  function ensureManualWishButton() {
-    let existing = document.getElementById('manualWishButton');
-    if (existing) return;
-
-    const btn = document.createElement('button');
-    btn.id = 'manualWishButton';
-    btn.textContent = 'Ohne Treffer trotzdem wünschen';
-    btn.className = 'btn-secondary';
-    btn.style.marginTop = '8px';
-
-    btn.onclick = () => {
-      const q = searchInput.value.trim();
-      if (!q) {
-        alert('Bitte gib einen Titel/Interpreten ein.');
-        return;
-      }
-      submitRequest({
-        platform: 'manuell',
-        track_title: q,
-        artist: null,
-        track_id: null,
-        track_url: null
-      });
-    };
-
-    // Button unterhalb der Ergebnisse einfügen
-    results.parentElement.appendChild(btn);
-  }
 
   // Suche über deine Supabase Edge Function
   async function searchSongs(e) {
@@ -588,7 +558,6 @@
         const text = await response.text();
         console.error('Proxy-Fehler:', response.status, text);
         searchError.textContent = 'Apple-Suche ist aktuell nicht verfügbar. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
-        ensureManualWishButton();
         return;
       }
 
@@ -597,16 +566,15 @@
 
       if (!data.results || data.results.length === 0) {
         results.innerHTML = '<p class="muted small">Keine Ergebnisse gefunden.</p>';
-        ensureManualWishButton();
         return;
       }
 
       data.results.forEach(r => addResult(r));
-      ensureManualWishButton();
+
     } catch (err) {
       console.error('Fehler bei der Suche:', err);
       searchError.textContent = 'Fehler bei der Suche. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
-      ensureManualWishButton();
+
     }
   }
 
@@ -642,7 +610,6 @@
   async function submitRequest(base) {
     const name = document.getElementById('name').value.trim();
     const table = document.getElementById('table').value.trim();
-    const link = document.getElementById('link').value.trim();
 
     let payload = {
       event_code: url.searchParams.get('e'),
@@ -665,9 +632,6 @@
         track_url: link || null,
         status: 'neu'
       };
-    } else if (link) {
-      payload.track_url = link; // zusätzlich
-    }
 
     const { error } = await client.from('song_requests').insert(payload);
     if (error) {
@@ -677,7 +641,6 @@
 
     // Eingabefelder zurücksetzen
     document.getElementById('query').value = '';
-    document.getElementById('link').value = '';
 
     results.innerHTML = '';
     searchError.textContent = '';
@@ -764,3 +727,4 @@
 </script>
 </body>
 </html>
+
