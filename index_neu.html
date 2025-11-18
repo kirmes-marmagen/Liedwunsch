@@ -91,7 +91,7 @@
       data.results.forEach(r => addResult(r));
     } catch (err) {
       console.error(err);
-      results.innerHTML = '<p class="muted">Fehler bei der Suche (siehe Konsole).</p>';
+      alert('Fehler bei der Suche: ' + (err && err.message ? err.message : err));
     }
   };
 
@@ -233,3 +233,4 @@
 </script>
 </body>
 </html>
+
