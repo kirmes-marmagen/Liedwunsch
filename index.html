@@ -70,12 +70,12 @@
   // QR-Code erzeugen (für Gäste)
   new QRCode(document.getElementById('qr'), { text: url.toString(), width: 92, height: 92 });
 
-  // Apple iTunes Suche (robust für Mobil + Desktop)
   const searchInput = document.getElementById('query');
   const searchBtn = document.getElementById('search');
   const results = document.getElementById('results');
 
-  async function searchSongs(e) {
+  // JSONP-Suche über iTunes API (ohne fetch, funktioniert auch auf iOS)
+  function searchSongs(e) {
     if (e) e.preventDefault();
 
     const q = searchInput.value.trim();
@@ -86,27 +86,56 @@
       return;
     }
 
-    try {
-      const searchUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&media=music&limit=25&country=DE`;
-      const response = await fetch(searchUrl);
+    // eindeutiger Callback-Name pro Anfrage
+    const callbackName = 'itunesCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
 
-      if (!response.ok) {
-        throw new Error('HTTP-Fehler ' + response.status);
+    // URL mit JSONP-Callback
+    const searchUrl =
+      'https://itunes.apple.com/search' +
+      '?term=' + encodeURIComponent(q) +
+      '&entity=song' +
+      '&media=music' +
+      '&limit=25' +
+      '&country=DE' +
+      '&callback=' + callbackName;
+
+    // Script-Tag erzeugen
+    const script = document.createElement('script');
+    script.src = searchUrl;
+    script.async = true;
+
+    // Fehlerbehandlung, falls das Script gar nicht geladen werden kann
+    script.onerror = function() {
+      console.error('JSONP-Request zu iTunes ist fehlgeschlagen');
+      alert('Fehler bei der Suche: Anfrage konnte nicht geladen werden.');
+      // Callback aufräumen
+      delete window[callbackName];
+      script.remove();
+    };
+
+    // Callback-Funktion, die von Apple aufgerufen wird
+    window[callbackName] = function(data) {
+      try {
+        console.log('iTunes JSONP-Daten:', data);
+
+        if (!data || !data.results || data.results.length === 0) {
+          results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
+          return;
+        }
+
+        data.results.forEach(r => addResult(r));
+      } catch (err) {
+        console.error('Fehler beim Verarbeiten der iTunes-Daten:', err);
+        alert('Fehler bei der Suche: ' + (err && err.message ? err.message : 'Unbekannter Fehler'));
+      } finally {
+        // Aufräumen
+        delete window[callbackName];
+        script.remove();
       }
+    };
 
-      const data = await response.json();
-      console.log('Search data:', data); // hilfreich fürs Debuggen auf dem Handy
-
-      if (!data.results || data.results.length === 0) {
-        results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
-        return;
-      }
-
-      data.results.forEach(r => addResult(r));
-    } catch (err) {
-      console.error('Fehler bei der Suche:', err);
-      alert('Fehler bei der Suche: ' + (err && err.message ? err.message : 'Unbekannter Fehler'));
-    }
+    // Script ins Dokument einfügen → Request startet
+    document.body.appendChild(script);
   }
 
   // Klick auf "Suchen"
