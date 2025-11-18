@@ -20,6 +20,7 @@
     .row { display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid #eee; border-radius:12px; padding:10px; background:#f9fafb; }
     .muted { color:#6b7280; font-size: 0.9em; }
     .small { font-size: .95em; }
+    .error { color:#b91c1c; font-size:0.9em; margin-top:6px; }
   </style>
 </head>
 <body>
@@ -44,6 +45,7 @@
           <input id="link" placeholder="…oder Link aus Spotify/Apple einfügen (optional)" />
         </div>
         <div id="results" class="list" style="margin-top:12px"></div>
+        <div id="searchError" class="error"></div>
       </div>
       <div class="card">
         <h2>Letzte Wünsche</h2>
@@ -57,6 +59,9 @@
   const SUPABASE_URL = 'https://nnbjwlbjqjjyrbrvbuva.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYmp3bGJqcWpqeXJicnZidXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MjczMDksImV4cCI6MjA3ODAwMzMwOX0.kRpglJlnYQHV1dXJPorb8d4GGysYCLbW-6s-mDdWMOo';
   const EVENT_CODE = 'Kirmes-2026';
+
+  // URL deiner Edge Function (ggf. anpassen!)
+  const ITUNES_PROXY_URL = 'https://nnbjwlbjqjjyrbrvbuva.functions.supabase.co/itunes-proxy';
 
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -73,69 +78,84 @@
   const searchInput = document.getElementById('query');
   const searchBtn = document.getElementById('search');
   const results = document.getElementById('results');
+  const searchError = document.getElementById('searchError');
 
-  // JSONP-Suche über iTunes API (ohne fetch, funktioniert auch auf iOS)
-  function searchSongs(e) {
+  // Fallback-Button für "trotzdem wünschen"
+  function ensureManualWishButton() {
+    let existing = document.getElementById('manualWishButton');
+    if (existing) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'manualWishButton';
+    btn.textContent = 'Ohne Treffer trotzdem wünschen';
+    btn.style.marginTop = '8px';
+
+    btn.onclick = () => {
+      const q = searchInput.value.trim();
+      if (!q) {
+        alert('Bitte gib einen Titel/Interpreten ein.');
+        return;
+      }
+      submitRequest({
+        platform: 'manuell',
+        track_title: q,
+        artist: null,
+        track_id: null,
+        track_url: null
+      });
+    };
+
+    // Button unterhalb der Ergebnisse einfügen
+    results.parentElement.appendChild(btn);
+  }
+
+  // Suche über deine Supabase Edge Function
+  async function searchSongs(e) {
     if (e) e.preventDefault();
 
     const q = searchInput.value.trim();
     results.innerHTML = '';
+    searchError.textContent = '';
 
     if (!q) {
       alert('Bitte gib erst einen Suchbegriff ein.');
       return;
     }
 
-    // eindeutiger Callback-Name pro Anfrage
-    const callbackName = 'itunesCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    try {
+      const url = new URL(ITUNES_PROXY_URL);
+      url.searchParams.set('term', q);
+      url.searchParams.set('country', 'DE');
+      url.searchParams.set('limit', '25');
 
-    // URL mit JSONP-Callback
-    const searchUrl =
-      'https://itunes.apple.com/search' +
-      '?term=' + encodeURIComponent(q) +
-      '&entity=song' +
-      '&media=music' +
-      '&limit=25' +
-      '&country=DE' +
-      '&callback=' + callbackName;
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+      });
 
-    // Script-Tag erzeugen
-    const script = document.createElement('script');
-    script.src = searchUrl;
-    script.async = true;
-
-    // Fehlerbehandlung, falls das Script gar nicht geladen werden kann
-    script.onerror = function() {
-      console.error('JSONP-Request zu iTunes ist fehlgeschlagen');
-      alert('Fehler bei der Suche: Anfrage konnte nicht geladen werden.');
-      // Callback aufräumen
-      delete window[callbackName];
-      script.remove();
-    };
-
-    // Callback-Funktion, die von Apple aufgerufen wird
-    window[callbackName] = function(data) {
-      try {
-        console.log('iTunes JSONP-Daten:', data);
-
-        if (!data || !data.results || data.results.length === 0) {
-          results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
-          return;
-        }
-
-        data.results.forEach(r => addResult(r));
-      } catch (err) {
-        console.error('Fehler beim Verarbeiten der iTunes-Daten:', err);
-        alert('Fehler bei der Suche: ' + (err && err.message ? err.message : 'Unbekannter Fehler'));
-      } finally {
-        // Aufräumen
-        delete window[callbackName];
-        script.remove();
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Proxy-Fehler:', response.status, text);
+        searchError.textContent = 'Apple-Suche ist aktuell nicht verfügbar. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
+        ensureManualWishButton();
+        return;
       }
-    };
 
-    // Script ins Dokument einfügen → Request startet
-    document.body.appendChild(script);
+      const data = await response.json();
+      console.log('Proxy-Daten:', data);
+
+      if (!data.results || data.results.length === 0) {
+        results.innerHTML = '<p class="muted">Keine Ergebnisse gefunden.</p>';
+        ensureManualWishButton();
+        return;
+      }
+
+      data.results.forEach(r => addResult(r));
+      ensureManualWishButton();
+    } catch (err) {
+      console.error('Fehler bei der Suche:', err);
+      searchError.textContent = 'Fehler bei der Suche. Du kannst den Wunsch trotzdem unten ohne Treffer abschicken.';
+      ensureManualWishButton();
+    }
   }
 
   // Klick auf "Suchen"
@@ -207,7 +227,7 @@
     document.getElementById('query').value = '';
     document.getElementById('link').value = '';
 
-    // 👉 WICHTIG: Liste "Letzte Wünsche" direkt neu laden
+    // Liste "Letzte Wünsche" direkt neu laden
     await loadLatest();
   }
 
