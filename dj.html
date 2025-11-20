@@ -9,12 +9,15 @@
     :root {
       --bg-dark: #020617;
       --bg-card: rgba(15, 23, 42, 0.94);
+      --bg-soft: rgba(15, 23, 42, 0.88);
       --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.15);
       --accent-strong: #16a34a;
       --text-main: #e5e7eb;
       --text-soft: #9ca3af;
       --border-subtle: rgba(148, 163, 184, 0.35);
       --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.6);
+      --radius-lg: 18px;
       --radius-xl: 24px;
       --transition-fast: 0.18s ease-out;
     }
@@ -34,6 +37,7 @@
       min-height: 100vh;
     }
 
+    /* Vollbreiter Logo-Balken */
     .full-logo-bar {
       width: 100%;
       text-align: center;
@@ -64,8 +68,8 @@
       margin-bottom: 18px;
       background: linear-gradient(135deg, rgba(15,23,42,0.97), rgba(15,23,42,0.9));
       border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.4);
-      box-shadow: 0 14px 35px rgba(15,23,42,0.7);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.7);
       backdrop-filter: blur(16px);
       position: sticky;
       top: 10px;
@@ -297,17 +301,6 @@
       box-shadow: 0 12px 20px rgba(34, 197, 94, 0.4);
     }
 
-    .btn-link {
-      background: none;
-      border: none;
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      cursor: pointer;
-      text-decoration: underline;
-      padding: 0;
-      margin-top: 8px;
-    }
-
     .error {
       color: #fecaca;
       font-size: 0.8rem;
@@ -323,6 +316,7 @@
       justify-content: flex-end;
       font-size: 0.8rem;
       color: var(--text-soft);
+      margin-bottom: 8px;
     }
 
     .btn-small {
@@ -414,7 +408,7 @@
         </div>
 
         <div class="top-right">
-          <span id="djEmailLabel"></span>
+          <span id="djStatusLabel">Eingeloggt</span>
           <button id="logoutBtn" class="btn-small">Logout</button>
         </div>
 
@@ -429,11 +423,10 @@
   </div>
 
 <script>
-  // 👉 SUPABASE KONFIG – WIE IN index.html
+  // 👉 SUPABASE KONFIG – wie in index.html
   const SUPABASE_URL = 'https://nnbjwlbjqjjyrbrvbuva.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYmp3bGJqcWpqeXJicnZidXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MjczMDksImV4cCI6MjA3ODAwMzMwOX0.kRpglJlnYQHV1dXJPorb8d4GGysYCLbW-6s-mDdWMOo';
   const EVENT_CODE = 'Kirmes-2026';
-  const DJ_EMAIL = 'dj@kirmes-marmagen.de'; // 👈 HIER DEINE DJ-E-MAIL EINTRAGEN (muss zu Supabase-User passen)
 
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -443,7 +436,6 @@
   const loginError = document.getElementById('loginError');
   const sortSelect = document.getElementById('sortOrder');
   const logoutBtn = document.getElementById('logoutBtn');
-  const djEmailLabel = document.getElementById('djEmailLabel');
 
   let currentEventCode = EVENT_CODE;
   let realtimeInitialized = false;
@@ -457,11 +449,9 @@
   currentEventCode = url.searchParams.get('e');
   document.getElementById('eventLabel').textContent = currentEventCode;
 
-  function showDashboard(session) {
+  function showDashboard() {
     loginView.style.display = 'none';
     dashboardView.style.display = 'block';
-    const email = session?.user?.email || '';
-    djEmailLabel.textContent = email ? `Eingeloggt als: ${email}` : '';
   }
 
   async function initRealtimeAndLoad() {
@@ -470,7 +460,6 @@
 
     await loadDj();
 
-    // Realtime-Channel nur für DJ initialisieren
     client.channel('rq-dj')
       .on(
         'postgres_changes',
@@ -492,7 +481,6 @@
       )
       .subscribe();
 
-    // Fallback: alle 5 Sekunden neu laden
     setInterval(loadDj, 5000);
   }
 
@@ -575,14 +563,9 @@
       return;
     }
 
-    if (email.toLowerCase() !== DJ_EMAIL.toLowerCase()) {
-      // Optional: weitere Einschränkung, damit nur der DJ-Account genutzt wird
-      loginError.textContent = 'Dieser Account ist nicht für das DJ-Dashboard freigeschaltet.';
-      await client.auth.signOut();
-      return;
-    }
-
-    showDashboard(data.session);
+    // Sicherheit: Welche E-Mails wirklich Zugriff haben,
+    // wird ausschließlich in den Supabase-RLS-Policies entschieden.
+    showDashboard();
     await initRealtimeAndLoad();
   });
 
@@ -598,8 +581,8 @@
   // Beim Laden prüfen, ob Session existiert
   (async () => {
     const { data: { session } } = await client.auth.getSession();
-    if (session && session.user?.email?.toLowerCase() === DJ_EMAIL.toLowerCase()) {
-      showDashboard(session);
+    if (session) {
+      showDashboard();
       await initRealtimeAndLoad();
     }
   })();
