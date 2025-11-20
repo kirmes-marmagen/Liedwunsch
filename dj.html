@@ -200,4 +200,394 @@
       font: inherit;
       outline: none;
       cursor: pointer;
-      transition: border-color var(--transition-fast), box-shadow var(--transition-fast)
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    }
+
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6);
+      background: rgba(15, 23, 42, 0.98);
+    }
+
+    footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      opacity: 0.9;
+    }
+
+    footer span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Login-View */
+    #loginView {
+      max-width: 420px;
+      margin: 24px auto 0;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 20px;
+      backdrop-filter: blur(18px);
+      text-align: center;
+    }
+
+    .login-card h2 {
+      margin-top: 0;
+    }
+
+    .login-field {
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .login-field label {
+      display: block;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+      color: var(--text-soft);
+    }
+
+    .login-field input {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.92);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .login-field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.7);
+      background: rgba(15, 23, 42, 0.98);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #022c22;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 18px 35px rgba(34, 197, 94, 0.45);
+      cursor: pointer;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 40px rgba(34, 197, 94, 0.55);
+      filter: brightness(1.02);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 12px 20px rgba(34, 197, 94, 0.4);
+    }
+
+    .error {
+      color: #fecaca;
+      font-size: 0.8rem;
+      margin-top: 6px;
+      min-height: 16px;
+      text-align: left;
+    }
+
+    .top-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+
+    .btn-small {
+      font-size: 0.75rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .btn-small:hover {
+      background: rgba(30, 41, 59, 0.98);
+    }
+
+    @media (max-width: 600px) {
+      header {
+        border-radius: 18px;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .full-logo-bar img {
+        width: 90%;
+        max-width: 360px;
+      }
+
+      .controls {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Vollbreites Vereinslogo -->
+  <div class="full-logo-bar">
+    <img src="Kirmesverein.png" alt="Kirmesverein Marmagen Logo">
+  </div>
+
+  <div class="page">
+    <header>
+      <div class="brand">
+        <h1>DJ-Dashboard – Kirmes Marmagen 2026</h1>
+        <p>Nur für autorisierte Personen</p>
+      </div>
+    </header>
+
+    <!-- Login-Ansicht -->
+    <div id="loginView">
+      <div class="login-card">
+        <h2>DJ Login</h2>
+        <p class="muted small">Melde dich mit deinem DJ-Account an, um die Songwünsche zu verwalten.</p>
+
+        <div class="login-field">
+          <label for="email">E-Mail</label>
+          <input id="email" type="email" placeholder="dj@example.com" autocomplete="username" />
+        </div>
+
+        <div class="login-field">
+          <label for="password">Passwort</label>
+          <input id="password" type="password" placeholder="Passwort" autocomplete="current-password" />
+        </div>
+
+        <button id="loginBtn" class="btn-primary">Einloggen</button>
+        <div id="loginError" class="error"></div>
+      </div>
+    </div>
+
+    <!-- Dashboard-Ansicht -->
+    <main id="dashboardView" style="display:none;">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Songwünsche</h2>
+            <p class="card-subtitle">
+              Es werden nur Wünsche mit Status <strong>neu</strong> angezeigt.<br>
+              Event: <span id="eventLabel"></span>
+            </p>
+          </div>
+          <div class="controls">
+            <span class="muted small">Sortierung:</span>
+            <select id="sortOrder">
+              <option value="asc">Älteste zuerst</option>
+              <option value="desc">Neueste zuerst</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <span id="djStatusLabel">Eingeloggt</span>
+          <button id="logoutBtn" class="btn-small">Logout</button>
+        </div>
+
+        <div id="list" class="list"></div>
+      </section>
+
+      <footer>
+        Wünsche werden direkt aus der <span>Gäste-Wunschseite</span> übernommen.  
+        Markiere gespielte Songs, damit sie aus dieser Liste verschwinden.
+      </footer>
+    </main>
+  </div>
+
+<script>
+  // 👉 SUPABASE KONFIG – wie in index.html
+  const SUPABASE_URL = 'https://nnbjwlbjqjjyrbrvbuva.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYmp3bGJqcWpqeXJicnZidXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MjczMDksImV4cCI6MjA3ODAwMzMwOX0.kRpglJlnYQHV1dXJPorb8d4GGysYCLbW-6s-mDdWMOo';
+  const EVENT_CODE = 'Kirmes-2026';
+
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginView = document.getElementById('loginView');
+  const dashboardView = document.getElementById('dashboardView');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginError = document.getElementById('loginError');
+  const sortSelect = document.getElementById('sortOrder');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  let currentEventCode = EVENT_CODE;
+  let realtimeInitialized = false;
+
+  // Event-Code per URL-Parameter unterstützen (?e=...)
+  const url = new URL(window.location);
+  if (!url.searchParams.get('e')) {
+    url.searchParams.set('e', EVENT_CODE);
+    history.replaceState({}, '', url.toString());
+  }
+  currentEventCode = url.searchParams.get('e');
+  document.getElementById('eventLabel').textContent = currentEventCode;
+
+  function showDashboard() {
+    loginView.style.display = 'none';
+    dashboardView.style.display = 'block';
+  }
+
+  async function initRealtimeAndLoad() {
+    if (realtimeInitialized) return;
+    realtimeInitialized = true;
+
+    await loadDj();
+
+    client.channel('rq-dj')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'song_requests' },
+        payload => {
+          if (payload.new.event_code === currentEventCode) {
+            loadDj();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'song_requests' },
+        payload => {
+          if (payload.new.event_code === currentEventCode) {
+            loadDj();
+          }
+        }
+      )
+      .subscribe();
+
+    setInterval(loadDj, 5000);
+  }
+
+  async function loadDj() {
+    const ascending = sortSelect.value === 'asc';
+
+    const { data, error } = await client
+      .from('song_requests')
+      .select('*')
+      .eq('event_code', currentEventCode)
+      .eq('status', 'neu')
+      .order('created_at', { ascending });
+
+    if (error) {
+      console.error('Fehler beim Laden der DJ-Liste:', error);
+      return;
+    }
+
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+
+    (data || []).forEach(row => {
+      const item = renderRow(row);
+      list.appendChild(item);
+    });
+  }
+
+  function renderRow(row) {
+    const div = document.createElement('div');
+    div.className = 'row';
+
+    const title = [row.artist, row.track_title].filter(Boolean).join(' — ') || row.track_url || 'Wunsch';
+    const metaParts = [];
+    if (row.table_label) metaParts.push(row.table_label);
+    if (row.requester_name) metaParts.push(row.requester_name);
+    const metaLine = metaParts.join(' • ');
+
+    div.innerHTML = `
+      <div><strong>${title}</strong></div>
+      <div class="muted small">${metaLine}</div>
+    `;
+
+    const btnWrap = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.className = 'badge';
+    btn.textContent = 'Als gespielt markieren';
+    btn.onclick = async () => {
+      // ❌ Wunsch wird jetzt aus der DB GELÖSCHT
+      const { error: delErr } = await client
+        .from('song_requests')
+        .delete()
+        .eq('id', row.id);
+
+      if (delErr) {
+        alert('Fehler beim Löschen: ' + delErr.message);
+        console.error('Fehler beim Löschen:', delErr);
+        return;
+      }
+
+      await loadDj();
+    };
+    btnWrap.appendChild(btn);
+    div.appendChild(btnWrap);
+
+    return div;
+  }
+
+  // Login-Button
+  loginBtn.addEventListener('click', async () => {
+    loginError.textContent = '';
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!email || !password) {
+      loginError.textContent = 'Bitte E-Mail und Passwort eingeben.';
+      return;
+    }
+
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      console.error('Login-Fehler:', error);
+      loginError.textContent = 'Login fehlgeschlagen: ' + error.message;
+      return;
+    }
+
+    showDashboard();
+    await initRealtimeAndLoad();
+  });
+
+  // Sortierung
+  sortSelect.addEventListener('change', loadDj);
+
+  // Logout
+  logoutBtn.addEventListener('click', async () => {
+    await client.auth.signOut();
+    location.reload();
+  });
+
+  // Beim Laden prüfen, ob Session existiert
+  (async () => {
+    const { data: { session } } = await client.auth.getSession();
+    if (session) {
+      showDashboard();
+      await initRealtimeAndLoad();
+    }
+  })();
+</script>
+</body>
+</html>
