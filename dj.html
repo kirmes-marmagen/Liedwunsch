@@ -6,40 +6,296 @@
   <title>Songwunsch – DJ Dashboard</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background:#020617; color:#e5e7eb; }
-    .container { max-width: 960px; margin: 0 auto; padding: 16px; }
-    .card { border-radius:16px; padding:16px; background:#020617; border:1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,.8); }
-    h1,h2 { margin-top:0; }
-    .list { display:flex; flex-direction:column; gap:8px; max-height: 80vh; overflow:auto; }
-    .row { display:flex; flex-direction:column; gap:4px; border-radius:12px; padding:10px; background:#0b1120; border:1px solid #1f2937; }
-    .muted { color:#9ca3af; font-size: .9em; }
-    .badge { font-size:.8em; border-radius:999px; padding:4px 10px; border:1px solid #4b5563; background:#111827; color:#e5e7eb; cursor:pointer; }
-    .badge:hover { background:#e5e7eb; color:#020617; }
-    select { background:#020617; color:#e5e7eb; border-radius:8px; border:1px solid #4b5563; padding:6px 8px; }
-    .topbar { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
-    .small { font-size:.8em; }
+    :root {
+      --bg-dark: #020617;
+      --bg-card: rgba(15, 23, 42, 0.94);
+      --bg-soft: rgba(15, 23, 42, 0.88);
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.15);
+      --accent-strong: #16a34a;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.6);
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(34, 197, 94, 0.25) 0, transparent 55%),
+        radial-gradient(circle at bottom, rgba(37, 99, 235, 0.18) 0, transparent 55%),
+        var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    /* Vollbreiter Logo-Balken oben wie auf der Gästeseite */
+    .full-logo-bar {
+      width: 100%;
+      text-align: center;
+      padding: 20px 0 10px;
+      background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(15,23,42,0.80));
+      border-bottom: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .full-logo-bar img {
+      max-width: 420px;
+      width: 80%;
+      height: auto;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 16px 32px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 14px 18px;
+      margin-top: 10px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.9));
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 10px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: center;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .brand p {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--text-soft);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 20px;
+      backdrop-filter: blur(18px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      margin: 0;
+    }
+
+    .card-subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-soft);
+    }
+
+    .chip {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-soft);
+      background: rgba(15, 23, 42, 0.85);
+      white-space: nowrap;
+    }
+
+    .muted {
+      color: var(--text-soft);
+      font-size: 0.9em;
+    }
+
+    .small {
+      font-size: 0.8em;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 70vh;
+      overflow: auto;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      font-size: 0.9rem;
+      transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .row:hover {
+      transform: translateY(-1px);
+      background: rgba(15, 23, 42, 0.98);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
+    }
+
+    .badge {
+      font-size: 0.8em;
+      border-radius: 999px;
+      padding: 6px 12px;
+      border: 1px solid rgba(34, 197, 94, 0.7);
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .badge:hover {
+      background: rgba(34, 197, 94, 0.18);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.6);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+    }
+
+    select {
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 6px 10px;
+      font: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    }
+
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6);
+      background: rgba(15, 23, 42, 0.98);
+    }
+
+    footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      opacity: 0.9;
+    }
+
+    footer span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        border-radius: 18px;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .full-logo-bar img {
+        width: 90%;
+        max-width: 360px;
+      }
+
+      .controls {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <div class="topbar">
-        <div>
-          <h1>🎛️ DJ-Dashboard</h1>
-          <p class="muted small">Es werden nur Wünsche mit Status <strong>neu</strong> angezeigt.</p>
-          <p class="muted small">Event: <span id="eventLabel"></span></p>
-        </div>
-        <div>
-          <label class="muted small">Sortierung:
+  <!-- Vollbreites Vereinslogo -->
+  <div class="full-logo-bar">
+    <img src="Kirmesverein.png" alt="Kirmesverein Marmagen Logo">
+  </div>
+
+  <div class="page">
+    <header>
+      <div class="brand">
+        <h1>DJ-Dashboard – Kirmes Marmagen 2026</h1>
+        <p>Verwalte die aktuellen Songwünsche in Echtzeit</p>
+      </div>
+    </header>
+
+    <main id="dj">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Songwünsche</h2>
+            <p class="card-subtitle">
+              Es werden nur Wünsche mit Status <strong>neu</strong> angezeigt.<br>
+              Event: <span id="eventLabel"></span>
+            </p>
+          </div>
+          <div class="controls">
+            <span class="muted small">Sortierung:</span>
             <select id="sortOrder">
               <option value="asc">Älteste zuerst</option>
               <option value="desc">Neueste zuerst</option>
             </select>
-          </label>
+          </div>
         </div>
-      </div>
-      <div id="list" class="list"></div>
-    </div>
+
+        <div id="list" class="list"></div>
+      </section>
+
+      <footer>
+        Wünsche werden direkt aus der <span>Gäste-Wunschseite</span> übernommen.  
+        Markiere gespielte Songs, damit sie aus dieser Liste verschwinden.
+      </footer>
+    </main>
   </div>
 
 <script>
