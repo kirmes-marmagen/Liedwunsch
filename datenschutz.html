@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Datenschutzhinweis – Liedwunsch</title>
+  <meta name="description" content="Datenschutzhinweis für die Liedwunsch-Seite des Maikomitee Marmagen." />
+  <style>
+    :root{
+      --green:#1f8a3b;
+      --green-dark:#13652a;
+      --text:#0f172a;
+      --muted:#475569;
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --border:#e2e8f0;
+      --shadow:0 10px 25px rgba(2, 6, 23, .08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(31,138,59,.16), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(31,138,59,.10), transparent 55%),
+                  var(--bg);
+      line-height:1.55;
+    }
+    a{color:var(--green-dark); text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{padding:28px 18px 10px;}
+    .wrap{max-width: 920px; margin:0 auto;}
+    .brand{display:flex; align-items:center; gap:14px; margin-bottom: 14px;}
+    .mark{
+      width:52px;height:52px;border-radius:50%;
+      background: conic-gradient(from 210deg, var(--green), #3bbf63, var(--green));
+      position:relative;
+      box-shadow: 0 10px 20px rgba(31,138,59,.18);
+      flex:0 0 auto;
+    }
+    .mark:after{
+      content:"";
+      position:absolute; inset:8px;
+      border-radius:50%;
+      background: #fff;
+      border: 3px solid rgba(31,138,59,.65);
+    }
+    .brand h1{font-size: 1.15rem; margin:0; letter-spacing:.2px;}
+    .brand p{margin:2px 0 0; color:var(--muted); font-size:.95rem;}
+    main{padding: 0 18px 40px;}
+    .card{
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-header{
+      padding: 22px 22px 18px;
+      border-bottom:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(31,138,59,.10), rgba(31,138,59,0));
+    }
+    .card-header h2{margin:0 0 6px; font-size: 1.35rem;}
+    .card-header .sub{margin:0; color:var(--muted); font-size:.98rem;}
+    .card-body{padding: 22px;}
+    h3{margin: 18px 0 8px; font-size: 1.05rem;}
+    h3:first-child{margin-top:0}
+    p{margin: 0 0 12px}
+    ul{margin: 0 0 12px; padding-left: 18px;}
+    .note{
+      border-left: 4px solid rgba(31,138,59,.55);
+      background: rgba(31,138,59,.06);
+      padding: 12px 12px;
+      border-radius: 10px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    footer{padding: 18px; color: var(--muted); font-size: .92rem; text-align:center;}
+    code{
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: .92em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand" aria-label="Maikomitee Marmagen">
+        <div class="mark" aria-hidden="true"></div>
+        <div>
+          <h1>Maikomitee Marmagen</h1>
+          <p>Datenschutzhinweis für die Liedwunsch-Seite</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <article class="card">
+        <div class="card-header">
+          <h2>Datenschutzhinweis – Liedwunsch</h2>
+          <p class="sub">Stand: <span id="date"></span></p>
+        </div>
+
+        <div class="card-body">
+          <h3>1. Verantwortlicher</h3>
+          <p>
+            <strong>Maikomitee Marmagen</strong><br />
+            Kontakt: <em>Bitte E-Mail-Adresse ergänzen</em>
+            <!-- Optional: Adresse/Ort ergänzen -->
+          </p>
+
+          <h3>2. Allgemeines</h3>
+          <p>
+            Wir nehmen den Schutz deiner personenbezogenen Daten ernst. Personenbezogene Daten sind alle Daten,
+            mit denen du persönlich identifiziert werden kannst (z.&nbsp;B. Name, IP-Adresse).
+          </p>
+
+          <h3>3. Hosting über GitHub Pages</h3>
+          <p>
+            Diese Website wird über <strong>GitHub Pages</strong> bereitgestellt. Beim Aufruf der Seite werden
+            technisch bedingt <strong>Server-Logdaten</strong> verarbeitet (insbesondere IP-Adresse, Datum/Uhrzeit,
+            aufgerufene Seite, Browser-/Geräteinformationen). Die Verarbeitung erfolgt zur Bereitstellung und
+            Sicherheit der Website.
+          </p>
+          <p>
+            <strong>Rechtsgrundlage:</strong> Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO (berechtigtes Interesse an
+            sicherem und stabilem Betrieb der Website).
+          </p>
+
+          <h3>4. Songwunsch-Funktion („Liedwunsch“)</h3>
+          <p>
+            Wenn du einen Songwunsch absendest, verarbeiten wir die von dir eingegebenen Daten, um den Wunsch an
+            den DJ/die Wunschliste zu übermitteln.
+          </p>
+          <p><strong>Verarbeitete Daten</strong></p>
+          <ul>
+            <li><strong>Pflichtangaben:</strong> Song-/Interpretenwunsch (bzw. deine Eingabe zum Liedwunsch)</li>
+            <li><strong>Optionale Angaben:</strong> Name und Grund (freiwillig; keine Pflichtfelder)</li>
+          </ul>
+          <p>
+            <strong>Zweck der Verarbeitung:</strong> Entgegennahme, Anzeige/Verarbeitung und Abspielorganisation
+            von Liedwünschen.
+          </p>
+          <p>
+            <strong>Rechtsgrundlage:</strong> Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO (berechtigtes Interesse an
+            der Durchführung der Liedwunsch-Funktion und Veranstaltungsorganisation).
+          </p>
+
+          <h3>5. Technische Verarbeitung über Supabase</h3>
+          <p>
+            Die Liedwünsche werden in einer <strong>Supabase-Datenbank</strong> gespeichert und zur
+            Anzeige/Verarbeitung abgerufen.
+          </p>
+          <p>
+            <strong>Empfänger / Dienstleister:</strong> Supabase (als technischer Dienstleister/Hosting der Datenbank).
+          </p>
+
+          <h3>6. Speicherdauer / Löschung</h3>
+          <p>
+            Liedwünsche (inkl. optionaler Angaben wie Name/Grund) werden <strong>automatisch gelöscht, nachdem der Song
+            abgespielt wurde</strong>.
+          </p>
+          <p>
+            Server-Logdaten beim Websiteaufruf werden nach den Vorgaben des Hosting-Anbieters (GitHub) verarbeitet
+            und vorgehalten.
+          </p>
+
+          <h3>7. Deine Rechte</h3>
+          <p>Du hast nach der DSGVO grundsätzlich folgende Rechte:</p>
+          <ul>
+            <li>Auskunft über deine verarbeiteten Daten (Art.&nbsp;15 DSGVO)</li>
+            <li>Berichtigung unrichtiger Daten (Art.&nbsp;16 DSGVO)</li>
+            <li>Löschung (Art.&nbsp;17 DSGVO)</li>
+            <li>Einschränkung der Verarbeitung (Art.&nbsp;18 DSGVO)</li>
+            <li>Widerspruch gegen Verarbeitung auf Basis Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO (Art.&nbsp;21 DSGVO)</li>
+            <li>Datenübertragbarkeit, soweit anwendbar (Art.&nbsp;20 DSGVO)</li>
+          </ul>
+          <p>
+            Zur Ausübung deiner Rechte reicht eine Nachricht an die oben angegebene Kontaktmöglichkeit.
+          </p>
+
+          <h3>8. Beschwerderecht</h3>
+          <p>
+            Du hast zudem das Recht, dich bei einer Datenschutzaufsichtsbehörde zu beschweren (Art.&nbsp;77 DSGVO).
+          </p>
+
+          <div class="note">
+            <strong>Hinweis:</strong> Bitte ergänze im Abschnitt „Verantwortlicher“ mindestens eine
+            Kontakt-E-Mail. Falls ihr zusätzliche Dienste wie Analytics, eingebettete Inhalte oder externe Schriftarten
+            nutzt, muss der Hinweis entsprechend erweitert werden.
+          </div>
+        </div>
+      </article>
+
+      <footer>
+        <span>Zurück zur Seite: <a href="./">Liedwunsch</a></span>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      const el = document.getElementById('date');
+      if (!el) return;
+      const d = new Date();
+      el.textContent = d.toLocaleDateString('de-DE', { year:'numeric', month:'2-digit', day:'2-digit' });
+    })();
+  </script>
+</body>
+</html>
